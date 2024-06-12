@@ -5,6 +5,7 @@ from flask_cors import CORS
 import subprocess
 import pickle
 import os
+import shutil
 
 app = Flask(__name__)
 CORS(app)
@@ -13,52 +14,32 @@ CORS(app)
 # Global Variables
 curr_directory = None
 items_list = {}
-
-
-reviewListForDay = {
-    0: [],
-    1: [],
-    2: [],
-    3: [],
-    4: [],
-    5: [],
-    6: [],
-    7: [],
-    8: [],
-    9: [],
-    10: [],
-    11: [],
-    12: [],
-    13: [],
-    14: [],
-    15: [],
-    16: [],
-    17: [],
-    18: [],
-    19: [],
-    20: [],
-    21: [],
-    22: [],
-    23: [],
-}
+reviewListForDay = {}
 
 
 # This will store every term => each term is one item
 class Item:
     term = ""
     defn = ""
+    date_created = ""
+    full_date_review = ""
+    dt_datereview = None
     date_to_review = {}
     alt_defns = []
     level = 0
 
     # constructor with optional alternate defns parameter
-    def newTerm(self, termN, defnN, alt_defnsN=[]):
+    def __init__(self, termN, defnN, alt_defnsN=[]):
+        now = datetime.now()
         self.term = termN
         self.defn = defnN
         self.alt_defns = alt_defnsN
+        self.date_created = now.strftime("%m/%d/%Y, %H:%M:%S")
 
-        # retrieving current date
-        review_time = datetime.now() + timedelta(hours=4)
+        # retrieving review date
+        review_time = now + timedelta(hours=4)
+        self.dt_datereview = review_time
+        self.full_date_review = review_time.strftime("%m/%d/%Y, %H:%M:%S")
 
         # hour, day, month, year
         self.date_to_review["hour"] = review_time.strftime("%H")
@@ -67,34 +48,145 @@ class Item:
         self.date_to_review["year"] = review_time.strftime("%Y")
 
 
-# Need to add:
+############################### ENDPOINTS ###################
 
 
-# Endpoint for checking if there is profiles
-@app.route("/checkprofiles", methods=["GET"])
+# ENDPOINTS FOR LOADING PAGES
+@app.route("/homepage", methods=["GET"])
 def check_profiles():
     profiles_path = "./profiles"
     profiles_exist = len(os.listdir(profiles_path)) > 0
     print(profiles_exist)
     return jsonify(hasProfiles=profiles_exist)
 
-    # GOOD SPOT TO LOAD REVIEWS IN, SINCE THIS WILL ALWAYS BE THE FIRS THTING THAT LOADS ###### NEED TO DO #####################
+
+def loadItems():
+    global items_list
+    try:
+        with open("items", "rb") as file:
+            items_list = pickle.load(file)
+    except FileNotFoundError:
+        items_list = {}
+        with open("items", "wb") as file:
+            pickle.dump(items_list, file)
 
 
-@app.route("/createprofile", methods=["POST"])
+def saveItems():
+    global items_list
+    try:
+        with open("items", "wb") as file:
+            pickle.dump(items_list, file)
+    except FileNotFoundError:
+        items_list = {}
+        with open("items", "wb") as file:
+            pickle.dump(items_list, file)
+    file.close()
+
+
+## MANAGE TERMS FUNCTIONALITY
+
+
+# Add Term
+@app.route("/addterms", methods=["POST"])
+def add_term():
+    loadItems()
+    data = request.json
+
+    terms_defns = data.get("termsanddefn")
+
+    # PARSING DATA
+    # comes in the form of Term / Definition
+
+    slash_found = False
+
+    terms_defns = terms_defns.splitlines()
+    print(terms_defns)
+    # splitting into terms and defns
+    # iterating through each pair, then adding it to items_list
+    for item in terms_defns:
+        if "/" in item:
+            i = 0
+            term = ""
+            defn = ""
+            while i < len(item):
+                if item[i] == "/":
+                    slash_found = True
+                else:
+                    if not slash_found:
+                        term += item[i]
+                    else:
+                        defn += item[i]
+
+                i += 1
+            slash_found = False
+            term = term.strip()
+            defn = defn.strip()
+            items_list[term] = Item(term, defn)
+    saveItems()
+    return f"added term {terms_defns}"
+
+
+# Delete Term
+@app.route("/deleteterms", methods=["POST"])
+def delete_term():
+    loadItems()
+    data = request.json
+
+    terms_to_delete = data.get("termsanddefn")
+    terms_to_delete = terms_to_delete.splitlines()
+
+    for term in terms_to_delete:
+        term = term.strip()
+        if term in items_list:
+            del items_list[term]
+    saveItems()
+    return "deleted term"
+
+
+# VIEW TERMS
+
+
+@app.route("/viewterms", methods=["GET"])
+def getItems():
+    json_list = []
+    for item in items_list:
+        curr_item = items_list[item]
+        json_item = {
+            "term": curr_item.term,
+            "defn": curr_item.defn,
+            "alt_defns": curr_item.alt_defns,
+            "level": curr_item.level,
+            "date_created": curr_item.date_created,
+            "review_date": curr_item.full_date_review,
+        }
+        json_list.append(json_item)
+    return jsonify(terms=json_list)
+
+
+# PROFILE MANAGEMENT
+@app.route("/addprofile", methods=["POST"])
 def createProfile():
     data = request.json
-    print("here")
-    profilename = data.get("name")
+    profilename = data.get("profilename")
 
     if not os.path.exists(
         f"./profiles/{profilename}"
     ):  # creating a new profile if doesn't already exist
         os.makedirs(f"./profiles/{profilename}")
+
     return f"profile {profilename} created successfully"
 
 
-# Profiles
+@app.route("/deleteprofile", methods=["POST"])
+def deleteProfile():
+    data = request.json
+    profilename = data.get("profilename")
+
+    if os.path.exists(f"./profiles/{profilename}"):
+        shutil.rmtree(f"./profiles/{profilename}")
+    return f"profile ${profilename} delete"
+
+
 @app.route("/chooseprofile", methods=["POST"])
 def changeDir():
     data = request.json
@@ -102,40 +194,30 @@ def changeDir():
     curr_directory = data.get("dir")
 
 
-# need to make the function populate the terms
+# REVIEW TERMS FUNCTIONALITY
 
 
-@app.route("/populateTerms", methods=["POST"])
-# def populateTerms():
-#     for item in
+@app.route("/addreviewsforday", methods=["POST"])
+def loadReviews():
+    now = datetime.now()
+    for item in items_list:
+        if (
+            item.dt_datereview < now
+        ):  # if the date to review is less than now, add it to list
+            reviewListForDay[item.term] = item.defn
 
 
-# check terms on startup, go into correct directory
-
-
-# Add Term
-@app.route("/addterm", methods=["POST"])
-def add_term():
+@app.route("/checkifcorrect", methods=["POST"])
+def checkCorrect():
     data = request.json
-
     term = data.get("term")
-    defn = data.get("defn")
-    alt_defns = data.get("alt_defns", [])
+    answer = data.get("answer")
 
-    new_term = Item()
-    new_term.newTerm(term, defn, alt_defns)  # new term created
-
-    items_list[term] = new_term  # new term added to end of list
-
-
-# Delete Term
-@app.route("/deleteterm", methods=["POST"])
-def delete_term():
-    data = request.json
-
-    term_to_delete = data.get("term")
-
-    del items_list[term_to_delete]
+    actualitem = items_list[term]
+    if answer == actualitem.defn:
+        return jsonify(correct=True)
+    else:
+        return jsonify(correct=False)
 
 
 # add show terms path
