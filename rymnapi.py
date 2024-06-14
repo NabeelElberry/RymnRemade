@@ -6,6 +6,8 @@ import subprocess
 import pickle
 import os
 import shutil
+import random
+import re
 
 app = Flask(__name__)
 CORS(app)
@@ -14,20 +16,12 @@ CORS(app)
 # Global Variables
 curr_directory = None
 items_list = {}
-reviewListForDay = {}
+review_list = {}
+stats = dict(numberofterms=0, numberofreviewsdone=0, numberright=0, numberwrong=0)
 
 
 # This will store every term => each term is one item
 class Item:
-    term = ""
-    defn = ""
-    date_created = ""
-    full_date_review = ""
-    dt_datereview = None
-    date_to_review = {}
-    alt_defns = []
-    level = 0
-
     # constructor with optional alternate defns parameter
     def __init__(self, termN, defnN, alt_defnsN=[]):
         now = datetime.now()
@@ -35,17 +29,37 @@ class Item:
         self.defn = defnN
         self.alt_defns = alt_defnsN
         self.date_created = now.strftime("%m/%d/%Y, %H:%M:%S")
-
+        self.level = 1
         # retrieving review date
-        review_time = now + timedelta(hours=4)
+        review_time = now  # + timedelta(hours=4) add this back in
         self.dt_datereview = review_time
         self.full_date_review = review_time.strftime("%m/%d/%Y, %H:%M:%S")
-
+        # self.date_to_review = {}
         # hour, day, month, year
-        self.date_to_review["hour"] = review_time.strftime("%H")
-        self.date_to_review["day"] = review_time.strftime("%d")
-        self.date_to_review["month"] = review_time.strftime("%m")
-        self.date_to_review["year"] = review_time.strftime("%Y")
+        # self.date_to_review["hour"] = review_time.strftime("%H")
+        # self.date_to_review["day"] = review_time.strftime("%d")
+        # self.date_to_review["month"] = review_time.strftime("%m")
+        # self.date_to_review["year"] = review_time.strftime("%Y")
+
+    def getLevel(self):
+        return self.level
+
+    def setLevel(self, newlevel):
+        self.level = newlevel
+
+    def getdt(self):
+        return self.dt_datereview
+
+    def setdt(self, new_date):
+        self.dt_datereview = new_date
+        self.full_date_review = new_date.strftime("%m/%d/%Y, %H:%M:%S")
+        # self.date_to_review["hour"] = new_date.strftime("%H")
+        # self.date_to_review["day"] = new_date.strftime("%d")
+        # self.date_to_review["month"] = new_date.strftime("%m")
+        # self.date_to_review["year"] = new_date.strftime("%Y")
+
+    def __str__(self):
+        return f"Term: {self.term}, Review Date: {self.full_date_review}, Level: {self.level}"
 
 
 ############################### ENDPOINTS ###################
@@ -56,29 +70,30 @@ class Item:
 def check_profiles():
     profiles_path = "./profiles"
     profiles_exist = len(os.listdir(profiles_path)) > 0
-    print(profiles_exist)
     return jsonify(hasProfiles=profiles_exist)
 
 
 def loadItems():
     global items_list
+    global current_profile
     try:
-        with open("items", "rb") as file:
+        with open(f"./profiles/{current_profile}/items", "rb") as file:
             items_list = pickle.load(file)
     except FileNotFoundError:
         items_list = {}
-        with open("items", "wb") as file:
+        with open(f"./profiles/{current_profile}/items", "wb") as file:
             pickle.dump(items_list, file)
 
 
 def saveItems():
     global items_list
+    global current_profile
     try:
-        with open("items", "wb") as file:
+        with open(f"./profiles/{current_profile}/items", "wb") as file:
             pickle.dump(items_list, file)
     except FileNotFoundError:
         items_list = {}
-        with open("items", "wb") as file:
+        with open(f"./profiles/{current_profile}/items", "wb") as file:
             pickle.dump(items_list, file)
     file.close()
 
@@ -100,10 +115,11 @@ def add_term():
     slash_found = False
 
     terms_defns = terms_defns.splitlines()
-    print(terms_defns)
     # splitting into terms and defns
     # iterating through each pair, then adding it to items_list
+    count = 0
     for item in terms_defns:
+        count += 1
         if "/" in item:
             i = 0
             term = ""
@@ -122,7 +138,9 @@ def add_term():
             term = term.strip()
             defn = defn.strip()
             items_list[term] = Item(term, defn)
+    stats["numberofterms"] += count  # adding the number of terms to statistics
     saveItems()
+    saveStats()
     return f"added term {terms_defns}"
 
 
@@ -148,6 +166,8 @@ def delete_term():
 
 @app.route("/viewterms", methods=["GET"])
 def getItems():
+    global items_list
+    loadItems()
     json_list = []
     for item in items_list:
         curr_item = items_list[item]
@@ -164,6 +184,30 @@ def getItems():
 
 
 # PROFILE MANAGEMENT
+current_profile = "None"
+
+
+@app.route("/chooseprofile", methods=["POST"])
+def chooseProfile():
+    global current_profile
+    data = request.json
+    profilename = data.get("profilename")
+    current_profile = profilename
+
+    return f"{current_profile} chosen"
+
+
+@app.route("/getprofiles", methods=["GET"])
+def getProfiles():
+    dirs = [x[0][11:] for x in os.walk("./profiles") if x[0] != "./profiles"]
+    return jsonify(profiles=dirs)
+
+
+@app.route("/getcurrentprofile", methods=["GET"])
+def getCurrProfile():
+    return jsonify(profile=current_profile)
+
+
 @app.route("/addprofile", methods=["POST"])
 def createProfile():
     data = request.json
@@ -187,37 +231,191 @@ def deleteProfile():
     return f"profile ${profilename} delete"
 
 
-@app.route("/chooseprofile", methods=["POST"])
-def changeDir():
-    data = request.json
-
-    curr_directory = data.get("dir")
-
-
 # REVIEW TERMS FUNCTIONALITY
 
+# might want to look into using load and save review list sparingly,
+# since we have useEffect loadReviews which should load it in once per page
+# cutting down on API calls
 
-@app.route("/addreviewsforday", methods=["POST"])
-def loadReviews():
+
+def loadReviewList():
+    global review_list
+    try:
+        with open(f"./profiles/{current_profile}/reviews", "rb") as file:
+            review_list = pickle.load(file)
+    except FileNotFoundError:
+        review_list = {}
+        with open(f"./profiles/{current_profile}/reviews", "wb") as file:
+            pickle.dump(review_list, file)
+
+
+def saveReviewList():
+    global review_list
+    print("review list we're saving: ", review_list)
+    try:
+        with open(f"./profiles/{current_profile}/reviews", "wb") as file:
+            print("here")
+            pickle.dump(review_list, file)
+    except FileNotFoundError:
+        review_list = {}
+        with open(f"./profiles/{current_profile}/reviews", "wb") as file:
+            pickle.dump(review_list, file)
+    file.close()
+
+
+def setupReviewList():
+    global review_list
+    loadItems()
+    loadReviewList()
+
+    print("revs: ", review_list)
     now = datetime.now()
     for item in items_list:
+        print("item: ", items_list[item].getdt().strftime("%m/%d/%Y, %H:%M:%S"))
+        acc_item = items_list[item]
         if (
-            item.dt_datereview < now
+            acc_item.getdt() < now
         ):  # if the date to review is less than now, add it to list
-            reviewListForDay[item.term] = item.defn
+            review_list[acc_item.term] = acc_item.defn
+    saveReviewList()
+
+
+@app.route("/loadreviews", methods=["GET"])
+def loadReviews():
+    setupReviewList()
+    print(len(review_list))
+    return jsonify(revLength=len(review_list))
+
+
+def calculateNextReviewTime(item, correct):
+    if correct:  # case where they get it right
+        item.setLevel(item.getLevel() + 1)
+    else:
+        item.setLevel(max(1, item.getLevel() - 1))  # increment level by 1
+    level = item.getLevel()
+    if level == 2:
+        item.setdt(item.getdt() + timedelta(hours=8))
+    if level == 3:
+        item.setdt(item.getdt() + timedelta(hours=24))
+    if level == 4:
+        item.setdt(item.getdt() + timedelta(hours=48))
+    if level == 5:
+        item.setdt(item.getdt() + timedelta(hours=168))
+    if level == 6:
+        item.setdt(item.getdt() + timedelta(hours=336))
+    if level == 7:
+        item.setdt(item.getdt() + timedelta(hours=730))
+    if level == 8:
+        item.setdt(item.getdt() + timedelta(hours=2920))
+    print("next review print ", item)
+    return item
+
+
+failedReviews = {}
 
 
 @app.route("/checkifcorrect", methods=["POST"])
 def checkCorrect():
+    global failedReviews
+    loadReviewList()
+    global items_list
+    global review_list
     data = request.json
     term = data.get("term")
-    answer = data.get("answer")
+    term = term.strip('"')
 
-    actualitem = items_list[term]
-    if answer == actualitem.defn:
+    answer = data.get("answer")
+    answer = re.sub(r'["\']', "", answer)
+    print("answer: ", answer)
+    defn = review_list[term]
+    stats["numberofreviewsdone"] += 1
+    print("failedReviews: ", failedReviews)
+    if answer == defn:
+        del review_list[term]  # deleting it from the review list if correct
+        print("answer was correct")
+        print("review list after deletion: ", review_list)
+
+        items_list[term] = calculateNextReviewTime(
+            items_list[term], False if term in failedReviews else True
+        )
+
+        if len(review_list) == 0:
+            failedReviews = {}
+        print("new item: ", items_list[term].getdt())
+        stats["numberright"] += 1
+        saveItems()
+        saveStats()
+        saveReviewList()
         return jsonify(correct=True)
     else:
+        failedReviews[term] = True
+        saveItems()
+        stats["numberwrong"] += 1
+        saveStats()
         return jsonify(correct=False)
+
+
+@app.route("/getnextterm", methods=["GET"])
+def getNextTerm():
+    loadReviewList()
+    print("review list monkey: ", review_list)
+    if len(review_list) != 0:
+        choice = random.choice(list(review_list.items()))
+
+        term = choice[0]
+        defn = choice[1]
+    else:
+        term = "all done"
+        defn = "all done"
+    print(term)
+    return jsonify(term=term, defn=defn)
+
+
+# statistics section
+def loadStats():
+    global stats
+    try:
+        with open(f"./profiles/{current_profile}/stats", "rb") as file:
+            stats = pickle.load(file)
+    except FileNotFoundError:
+        stats = dict(
+            numberofterms=0, numberofreviewsdone=0, numberright=0, numberwrong=0
+        )
+
+        with open(f"./profiles/{current_profile}/stats", "wb") as file:
+            pickle.dump(stats, file)
+        saveStats()
+
+
+def saveStats():
+    global stats
+    try:
+        with open(f"./profiles/{current_profile}/stats", "wb") as file:
+            pickle.dump(stats, file)
+    except FileNotFoundError:
+        stats = dict(
+            numberofterms=0, numberofreviewsdone=0, numberright=0, numberwrong=0
+        )
+
+        with open(f"./profiles/{current_profile}/stats", "wb") as file:
+            pickle.dump(stats, file)
+        saveStats()
+    file.close()
+
+
+@app.route("/getstats", methods=["GET"])
+def getStats():
+    global stats
+    loadStats()
+    print(stats.keys())
+    numterms = stats["numberofterms"]
+    numreviews = stats["numberofreviewsdone"]
+    numright = stats["numberright"]
+    numwrong = stats["numberwrong"]
+
+    return jsonify(
+        numterms=numterms, numreviews=numreviews, numright=numright, numwrong=numwrong
+    )
 
 
 # add show terms path

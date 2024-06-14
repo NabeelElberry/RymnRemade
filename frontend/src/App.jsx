@@ -7,6 +7,8 @@ import TermManagementPage from "./components/TermManagementPage";
 import NavBar from "./components/NavBar";
 import ViewTerms from "./components/ViewTerms";
 import ProfileManagementPage from "./components/ProfileManagementPage";
+import ReviewTerms from "./components/ReviewTerms";
+import Statistics from "./components/Statistics";
 function App() {
   const [hasProfiles, setHasProfiles] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -37,6 +39,8 @@ function App() {
         <Route path="/termManagement" element={<TermManagementPage />} />
         <Route path="/profileManagement" element={<ProfileManagementPage />} />
         <Route path="/viewTerms" element={<ViewTerms />} />
+        <Route path="/reviewTerms" element={<ReviewTerms />} />
+        <Route path="/viewStats" element={<Statistics />} />
       </Routes>
     </>
   );

@@ -3,17 +3,50 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 
 export default function HomePage({ hasProfiles }) {
+  const [profiles, setProfiles] = useState([]);
+
   // Case where we have profiles already
+  // Need to choose a profile
+  useEffect(() => {
+    async function getProfiles() {
+      try {
+        const response = await axios.get("http://localhost:5000/getprofiles");
+        let profiles = response.data.profiles;
+        setProfiles(profiles);
+        console.log(profiles);
+      } catch (error) {
+        console.error("Couldn't get profiles!", error);
+      }
+    }
+
+    getProfiles();
+  }, []);
+
+  async function handleProfileChosen(selectedProfile) {
+    try {
+      const response = await axios.post("http://localhost:5000/chooseprofile", {
+        profilename: selectedProfile,
+      });
+    } catch (error) {
+      console.error("Couldn't choose profile!", error);
+    }
+  }
+
   if (hasProfiles) {
     return (
       <>
-        <div>Hello! What would you like to do today?</div>
-        <button onClick={() => handleEndpoint(0)}>Profile Management</button>
-        <button>
-          <Link to="/termManagement">Term Management</Link>
-        </button>
-        <button onClick={() => handleEndpoint(2)}>Review Terms</button>
-        <button onClick={() => handleEndpoint(3)}>Statistics</button>
+        Please select a profile
+        <div>
+          {profiles ? (
+            profiles.map((profile) => (
+              <button onClick={() => handleProfileChosen(profile)}>
+                {profile}
+              </button>
+            ))
+          ) : (
+            <div>Nothing</div>
+          )}
+        </div>
       </>
     );
   } else {
