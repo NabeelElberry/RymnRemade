@@ -1,8 +1,10 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
-
+import { useEffect, useRef, useState } from "react";
+import Term from "./Term";
 export default function ViewTerms() {
   const [currItems, setCurrItems] = useState([]);
+  const [itemSelected, setItemSelected] = useState();
+  let refs = useRef([]);
   async function retrieveItems() {
     try {
       const response = await axios.get("http://localhost:5000/viewterms");
@@ -21,20 +23,26 @@ export default function ViewTerms() {
     retrieveItems();
   }, []);
 
+  const handleFocus = (index) => {
+    if (refs.current[index]) {
+      refs.current[index].focus(); // Focus the button when called
+    }
+  };
+
   return (
-    <div>
-      <ul>
-        {currItems.map((item, index) => (
-          <li key={index}>
-            <p>Term: {item.term}</p>
-            <p>Definition: {item.defn}</p>
-            <p>Alternate Definitions: {item.alt_defns.join(", ")}</p>
-            <p>Level: {item.level}</p>
-            <p>Date Created: {item.date_created}</p>
-            <p>Review Date: {item.review_date}</p>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <span>
+      {currItems.map((item, index) => (
+        <Term
+          key={index}
+          name={item.term}
+          defn={item.defn}
+          alt_defns={item.alt_defns.join(", ")}
+          level={item.level}
+          created={item.date_created}
+          review={item.review_date}
+          focus={handleFocus(index)}
+        ></Term>
+      ))}
+    </span>
   );
 }

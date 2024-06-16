@@ -1,11 +1,15 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
+import CustomTextBox from "./CustomTextBox";
 export default function ReviewTerms() {
   const [term, setTerm] = useState("");
-  const [correct, setCorrect] = useState(false);
+  const [defn, setDefn] = useState("");
+  const [correct, setCorrect] = useState(null);
   const [lenRevList, setRevLenList] = useState(0);
   const [startedReview, setStartedReview] = useState(false);
   const [done, setDone] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+
   const answer = useRef();
 
   useEffect(() => {
@@ -21,6 +25,13 @@ export default function ReviewTerms() {
     loadReviews();
   }, []);
 
+  useEffect(() => {
+    // Show result message when correct state changes
+    if (correct !== null) {
+      setShowResult(true);
+    }
+  }, [correct]);
+
   async function getTerm() {
     try {
       const response = await axios.get("http://localhost:5000/getnextterm");
@@ -29,11 +40,11 @@ export default function ReviewTerms() {
         response.data.term == "all done" &&
         response.data.defn == "all done"
       ) {
+        setShowResult(false);
         setDone(true);
       }
 
       setTerm(response.data.term);
-
       console.log(
         "term loaded " + response.data.term + " " + response.data.defn
       );
@@ -48,38 +59,57 @@ export default function ReviewTerms() {
     getTerm();
   }, [startedReview]);
 
-  if (startedReview) {
-    async function handleReview() {
-      try {
-        const response = await axios.post(
-          "http://localhost:5000/checkifcorrect",
-          {
-            term: term,
-            answer: answer.current.value,
-          }
-        );
-        function toBool(str) {
-          return str == "True" ? true : false;
+  async function handleReview() {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/checkifcorrect",
+        {
+          term: term,
+          answer: answer.current.value,
         }
-
-        setCorrect(toBool(JSON.stringify(response.data.correct)));
-        console.log("the answer was " + JSON.stringify(response.data.correct));
-
-        getTerm();
-      } catch (error) {
-        console.error("There was an error checking profiles!", error);
+      );
+      setDefn(response.data.defn);
+      setCorrect(response.data.correct);
+      console.log("the answer was " + response.data.correct);
+      setShowResult(true);
+      getTerm();
+      if (correct) {
+        setCorrect(false);
+        setTimeout(() => {
+          setShowResult("");
+        }, 5000);
+        setCorrect(true);
       }
+    } catch (error) {
+      console.error("There was an error checking profiles!", error);
     }
+  }
 
+  if (startedReview) {
     return (
       <>
         {done ? (
           <div>All done</div>
         ) : (
           <div>
-            <h1>Term: {term}</h1>
-            <input ref={answer}></input>
+            <p className="text-8xl pb-10">Term: {term}</p>
+            <CustomTextBox inputRef={answer} labelText="Definition" />
             <button onClick={handleReview}>Submit</button>
+          </div>
+        )}
+
+        {showResult && (
+          <div>
+            {correct ? (
+              <div>Answer was correct</div>
+            ) : (
+              <div className="flex flex-row justify-center">
+                Answer was wrong, correct answer:
+                <p className="blur-sm hover:blur-none hover:cursor-pointer text-paneloutline">
+                  {" " + defn}
+                </p>
+              </div>
+            )}
           </div>
         )}
       </>

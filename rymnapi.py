@@ -137,6 +137,7 @@ def add_term():
             slash_found = False
             term = term.strip()
             defn = defn.strip()
+
             items_list[term] = Item(term, defn)
     stats["numberofterms"] += count  # adding the number of terms to statistics
     saveItems()
@@ -152,11 +153,14 @@ def delete_term():
 
     terms_to_delete = data.get("termsanddefn")
     terms_to_delete = terms_to_delete.splitlines()
-
+    count = 0
     for term in terms_to_delete:
         term = term.strip()
         if term in items_list:
+            count += 1
             del items_list[term]
+
+    stats["numberofterms"] -= count
     saveItems()
     return "deleted term"
 
@@ -293,20 +297,21 @@ def calculateNextReviewTime(item, correct):
     else:
         item.setLevel(max(1, item.getLevel() - 1))  # increment level by 1
     level = item.getLevel()
+    now = datetime.now()
     if level == 2:
-        item.setdt(item.getdt() + timedelta(hours=8))
+        item.setdt(now + timedelta(hours=8))
     if level == 3:
-        item.setdt(item.getdt() + timedelta(hours=24))
+        item.setdt(now + timedelta(hours=24))
     if level == 4:
-        item.setdt(item.getdt() + timedelta(hours=48))
+        item.setdt(now + timedelta(hours=48))
     if level == 5:
-        item.setdt(item.getdt() + timedelta(hours=168))
+        item.setdt(now + timedelta(hours=168))
     if level == 6:
-        item.setdt(item.getdt() + timedelta(hours=336))
+        item.setdt(now + timedelta(hours=336))
     if level == 7:
-        item.setdt(item.getdt() + timedelta(hours=730))
+        item.setdt(now + timedelta(hours=730))
     if level == 8:
-        item.setdt(item.getdt() + timedelta(hours=2920))
+        item.setdt(now + timedelta(hours=2920))
     print("next review print ", item)
     return item
 
@@ -314,7 +319,7 @@ def calculateNextReviewTime(item, correct):
 failedReviews = {}
 
 
-@app.route("/checkifcorrect", methods=["POST"])
+@app.route("/checkifcorrect", methods=["POST", "GET"])
 def checkCorrect():
     global failedReviews
     loadReviewList()
@@ -326,8 +331,11 @@ def checkCorrect():
 
     answer = data.get("answer")
     answer = re.sub(r'["\']', "", answer)
+    answer = answer.strip()
+    answer = answer.lower()
     print("answer: ", answer)
     defn = review_list[term]
+
     stats["numberofreviewsdone"] += 1
     print("failedReviews: ", failedReviews)
     if answer == defn:
@@ -346,13 +354,13 @@ def checkCorrect():
         saveItems()
         saveStats()
         saveReviewList()
-        return jsonify(correct=True)
+        return jsonify(correct=True, defn="")
     else:
         failedReviews[term] = True
         saveItems()
         stats["numberwrong"] += 1
         saveStats()
-        return jsonify(correct=False)
+        return jsonify(correct=False, defn=defn)
 
 
 @app.route("/getnextterm", methods=["GET"])

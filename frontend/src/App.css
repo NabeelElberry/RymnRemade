@@ -3,10 +3,17 @@
 @tailwind utilities;
 
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
   text-align: center;
+  height: 100%;
+  width: 100%;
+}
+
+.navbar {
+  filter: drop-shadow(0 10px 20px #372348);
+}
+
+.rymn {
+  filter: drop-shadow(0 0px 2px #372348);
 }
 
 .logo {

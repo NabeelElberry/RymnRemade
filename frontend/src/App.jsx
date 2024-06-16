@@ -10,39 +10,44 @@ import ProfileManagementPage from "./components/ProfileManagementPage";
 import ReviewTerms from "./components/ReviewTerms";
 import Statistics from "./components/Statistics";
 function App() {
-  const [hasProfiles, setHasProfiles] = useState(false);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    async function checkProfiles() {
-      try {
-        const response = await axios.get("http://localhost:5000/homepage");
-        setHasProfiles(response.data.hasProfiles);
-        setLoading(false);
-      } catch (error) {
-        console.error("There was an error checking profiles!", error);
-        setLoading(false);
-      }
+  const [currentProfile, setCurrentProfile] = useState("");
+
+  async function getProfile() {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/getcurrentprofile"
+      );
+      setCurrentProfile(response.data.profile);
+    } catch (error) {
+      console.log("Couldn't set profile in App.jsx");
     }
-
-    checkProfiles();
-  }, []);
-
-  if (loading) {
-    return <div>Loading...</div>;
   }
 
+  const handleProfileChange = () => {
+    getProfile();
+  };
+
   return (
-    <>
-      <NavBar />
-      <Routes>
-        <Route path="/" element={<HomePage hasProfiles={hasProfiles} />} />
-        <Route path="/termManagement" element={<TermManagementPage />} />
-        <Route path="/profileManagement" element={<ProfileManagementPage />} />
-        <Route path="/viewTerms" element={<ViewTerms />} />
-        <Route path="/reviewTerms" element={<ReviewTerms />} />
-        <Route path="/viewStats" element={<Statistics />} />
-      </Routes>
-    </>
+    <div className="overflow-hidden text-textcolor">
+      <NavBar profile={currentProfile} />
+      <div className="pt-16 w-full h-full">
+        <Routes>
+          <Route
+            className="overflow-hidden"
+            path="/"
+            element={<HomePage handleProfileClick={handleProfileChange} />}
+          />
+          <Route path="/termManagement" element={<TermManagementPage />} />
+          <Route
+            path="/profileManagement"
+            element={<ProfileManagementPage />}
+          />
+          <Route path="/viewTerms" element={<ViewTerms />} />
+          <Route path="/reviewTerms" element={<ReviewTerms />} />
+          <Route path="/viewStats" element={<Statistics />} />
+        </Routes>
+      </div>
+    </div>
   );
 }
 

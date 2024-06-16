@@ -1,18 +1,30 @@
 import { useRef, useState } from "react";
 import axios from "axios";
-
+import Button from "@mui/material/Button";
+import ButtonGroup from "@mui/material/ButtonGroup";
+import { TextField } from "@mui/material";
+import CustomTextBox from "./CustomTextBox";
 export default function TermManagementPage() {
-  const textArea = useRef();
+  const inputRef = useRef(null);
   const [currentlyAdd, setCurrentlyAdd] = useState(true);
-  const [currentText, setCurrentText] = useState("");
+  const [termsAdded, setTermsAdded] = useState("");
+  const [currentTerms, setCurrentTerms] = useState([]);
 
-  function handleSelectAdd(addOrDelete) {
+  async function handleSelectAdd(addOrDelete) {
     if (addOrDelete == 1) {
       setCurrentlyAdd(true);
     } else {
       setCurrentlyAdd(false);
+
+      try {
+        const response = await axios.get("http://localhost:5000/viewterms");
+        const arrayOfTerms = response.data.terms.map((term) => term.term);
+        setCurrentTerms(arrayOfTerms);
+        console.log(currentTerms);
+      } catch (error) {
+        console.log("There was an error retrieving terms");
+      }
     }
-    console.log(currentlyAdd);
   }
 
   async function handleOnAdd(currentlyAdd) {
@@ -22,36 +34,74 @@ export default function TermManagementPage() {
     }
     try {
       const response = await axios.post(url, {
-        termsanddefn: document.getElementById("mytextarea").value,
+        termsanddefn: inputRef.current.value,
       });
-      console.log(`adding terms using url ${url}`);
+      currentlyAdd
+        ? setTermsAdded("Terms were added!")
+        : setTermsAdded("Terms were deleted!");
+      setTimeout(() => {
+        setTermsAdded("");
+      }, 2000);
+      let value = inputRef.current.value;
+      let valArr = value.split(/\r?\n/);
+      let index;
+      let newArr = [];
+      console.log(valArr);
+      valArr.forEach((item) => {
+        index = currentTerms.indexOf(item);
+        if (index > -1) {
+          currentTerms.splice(index, 1);
+        }
+      });
+      newArr = currentTerms;
+      setCurrentTerms(newArr);
+      inputRef.current.value = "";
+      console.log(`${currentTerms} is currentTerms after deletion`);
     } catch (error) {
       console.error("There was an error checking profiles!", error);
     }
   }
 
   return (
-    <>
-      <h2>
-        <u>Add/Delete Terms</u>
-      </h2>
-      <div>
+    <div className="flex flex-col w-full justify-center items-center">
+      <p className="text-5xl pb-10">
+        <u>Term Management</u>
+      </p>
+      <div className="flex flex-row space-x-4">
         <button onClick={() => handleSelectAdd(1)}>Add</button>
         <button onClick={() => handleSelectAdd(0)}>Delete</button>
       </div>
       {currentlyAdd ? (
-        <div>
+        <p className="pt-10 pb-3">
           Write terms to add in the form: Term / Definition separated by new
           line
-        </div>
+        </p>
       ) : (
-        <div>Write term to delete separated by new line</div>
+        <p className="pt-10 pb-3">Write term to delete separated by new line</p>
       )}
-      <textarea ref={textArea} id="mytextarea" onChange></textarea>{" "}
+      <div className="flex flex-row w-full items-center justify-center flex-shrink">
+        <CustomTextBox
+          multi={true}
+          inputRef={inputRef}
+          currentlyAdd={currentlyAdd}
+        />
+        {/* <textarea ref={textArea} id="mytextarea" onChange></textarea>{" "} */}
+        {/* FOR DELETE WE HAVE THE OPTION TO DELETE VISUALLY */}
+        {currentlyAdd == false ? (
+          currentTerms ? (
+            <div className="h-24 w-auto overflow-x-hidden pl-5 pr-5 flex-shrink">
+              {currentTerms.map((term, index) => (
+                <div key={index}>{term}</div>
+              ))}
+            </div>
+          ) : null
+        ) : null}
+      </div>
       {/* TEXT AREA FOR ENTERING TERMS */}
       <button onClick={() => handleOnAdd(currentlyAdd)}>
         {currentlyAdd ? "Add Terms!" : "Delete Terms!"}
       </button>
-    </>
+      {termsAdded && <div>{termsAdded}</div>}
+    </div>
   );
 }
