@@ -92,20 +92,28 @@ export default function ReviewTerms() {
           <div>All done</div>
         ) : (
           <div>
-            <p className="text-8xl pb-10">Term: {term}</p>
-            <CustomTextBox inputRef={answer} labelText="Definition" />
-            <button onClick={handleReview}>Submit</button>
+            <p className="text-8xl pb-10 drop-shadow-smallerwhite">
+              Term: {term}
+            </p>
+            <div className="flex flex-row items-center justify-center">
+              <CustomTextBox inputRef={answer} labelText="Definition" />
+              <button className="ml-2 mb-1" onClick={handleReview}>
+                Submit
+              </button>
+            </div>
           </div>
         )}
 
         {showResult && (
           <div>
             {correct ? (
-              <div>Answer was correct</div>
+              <div className="text-correct drop-shadow-md">
+                <p>Answer was correct</p>
+              </div>
             ) : (
-              <div className="flex flex-row justify-center">
-                Answer was wrong, correct answer:
-                <p className="blur-sm hover:blur-none hover:cursor-pointer text-paneloutline">
+              <div className="flex flex-row justify-center text-incorrect space-x-1">
+                <p>Answer was wrong, hover to see correct answer:</p>
+                <p className="blur-sm hover:blur-none hover:cursor-pointer">
                   {" " + defn}
                 </p>
               </div>
@@ -116,8 +124,11 @@ export default function ReviewTerms() {
     );
   } else {
     return (
-      <div>
-        You have {lenRevList} reviews!
+      <div className="mb-1">
+        <p className="text-4xl">
+          You have {lenRevList ? lenRevList : 0} reviews!
+        </p>
+        <br />
         {lenRevList > 0 ? (
           <button onClick={() => setStartedReview(true)}>Start!</button>
         ) : null}

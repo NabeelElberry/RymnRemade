@@ -23,12 +23,16 @@ function App() {
     }
   }
 
+  useEffect(() => {
+    getProfile();
+  });
+
   const handleProfileChange = () => {
     getProfile();
   };
 
   return (
-    <div className="overflow-hidden text-textcolor">
+    <div className="overflow-hidden text-textcolor font-quicksand">
       <NavBar profile={currentProfile} />
       <div className="pt-16 w-full h-full">
         <Routes>

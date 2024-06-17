@@ -30,9 +30,10 @@ export default function ViewTerms() {
   };
 
   return (
-    <span>
+    <div className="p-1">
       {currItems.map((item, index) => (
         <Term
+          className="p-1"
           key={index}
           name={item.term}
           defn={item.defn}
@@ -43,6 +44,6 @@ export default function ViewTerms() {
           focus={handleFocus(index)}
         ></Term>
       ))}
-    </span>
+    </div>
   );
 }

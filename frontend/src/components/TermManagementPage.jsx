@@ -72,12 +72,14 @@ export default function TermManagementPage() {
         <button onClick={() => handleSelectAdd(0)}>Delete</button>
       </div>
       {currentlyAdd ? (
-        <p className="pt-10 pb-3">
+        <p className="pt-10 pb-3 font-bold">
           Write terms to add in the form: Term / Definition separated by new
           line
         </p>
       ) : (
-        <p className="pt-10 pb-3">Write term to delete separated by new line</p>
+        <p className="pt-10 pb-3 font-bold">
+          Write term to delete separated by new line
+        </p>
       )}
       <div className="flex flex-row w-full items-center justify-center flex-shrink">
         <CustomTextBox
@@ -89,16 +91,19 @@ export default function TermManagementPage() {
         {/* FOR DELETE WE HAVE THE OPTION TO DELETE VISUALLY */}
         {currentlyAdd == false ? (
           currentTerms ? (
-            <div className="h-24 w-auto overflow-x-hidden pl-5 pr-5 flex-shrink">
-              {currentTerms.map((term, index) => (
-                <div key={index}>{term}</div>
-              ))}
+            <div>
+              <u>Terms</u>
+              <div className="ml-1 h-24 w-auto overflow-x-hidden pl-5 pr-5 flex-shrink">
+                {currentTerms.map((term, index) => (
+                  <div key={index}>{term}</div>
+                ))}
+              </div>
             </div>
           ) : null
         ) : null}
       </div>
       {/* TEXT AREA FOR ENTERING TERMS */}
-      <button onClick={() => handleOnAdd(currentlyAdd)}>
+      <button className="mt-5 mb-1" onClick={() => handleOnAdd(currentlyAdd)}>
         {currentlyAdd ? "Add Terms!" : "Delete Terms!"}
       </button>
       {termsAdded && <div>{termsAdded}</div>}

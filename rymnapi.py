@@ -14,10 +14,24 @@ CORS(app)
 
 
 # Global Variables
+current_profile = "None"
 curr_directory = None
 items_list = {}
 review_list = {}
-stats = dict(numberofterms=0, numberofreviewsdone=0, numberright=0, numberwrong=0)
+stats = dict(
+    numberofterms=0,
+    numberofreviewsdone=0,
+    numberright=0,
+    numberwrong=0,
+    lvl1=0,
+    lvl2=0,
+    lvl3=0,
+    lvl4=0,
+    lvl5=0,
+    lvl6=0,
+    lvl7=0,
+    lvl8=0,
+)
 
 
 # This will store every term => each term is one item
@@ -31,7 +45,7 @@ class Item:
         self.date_created = now.strftime("%m/%d/%Y, %H:%M:%S")
         self.level = 1
         # retrieving review date
-        review_time = now  # + timedelta(hours=4) add this back in
+        review_time = now + timedelta(hours=4)
         self.dt_datereview = review_time
         self.full_date_review = review_time.strftime("%m/%d/%Y, %H:%M:%S")
         # self.date_to_review = {}
@@ -60,6 +74,33 @@ class Item:
 
     def __str__(self):
         return f"Term: {self.term}, Review Date: {self.full_date_review}, Level: {self.level}"
+
+
+def loadProf():
+    global current_profile
+    try:
+        with open("./prof", "rb") as file:
+            current_profile = pickle.load(file)
+    except FileNotFoundError:
+        current_profile = "None"
+
+        with open("./prof", "wb") as file:
+            pickle.dump(current_profile, file)
+        saveProf()
+
+
+def saveProf():
+    global current_profile
+    try:
+        with open("./prof", "wb") as file:
+            pickle.dump(current_profile, file)
+    except FileNotFoundError:
+        current_profile = "None"
+
+        with open("./prof", "wb") as file:
+            pickle.dump(current_profile, file)
+        saveProf()
+    file.close()
 
 
 ############################### ENDPOINTS ###################
@@ -105,6 +146,7 @@ def saveItems():
 @app.route("/addterms", methods=["POST"])
 def add_term():
     loadItems()
+    loadStats()
     data = request.json
 
     terms_defns = data.get("termsanddefn")
@@ -139,7 +181,9 @@ def add_term():
             defn = defn.strip()
 
             items_list[term] = Item(term, defn)
-    stats["numberofterms"] += count  # adding the number of terms to statistics
+    stats["numberofterms"] += count
+    stats["lvl1"] += count
+    # adding the number of terms to statistics
     saveItems()
     saveStats()
     return f"added term {terms_defns}"
@@ -149,6 +193,7 @@ def add_term():
 @app.route("/deleteterms", methods=["POST"])
 def delete_term():
     loadItems()
+    loadStats()
     data = request.json
 
     terms_to_delete = data.get("termsanddefn")
@@ -158,10 +203,13 @@ def delete_term():
         term = term.strip()
         if term in items_list:
             count += 1
+            item_lvl = items_list[term].getLevel()
+            stats[f"lvl{item_lvl}"] -= 1
             del items_list[term]
 
     stats["numberofterms"] -= count
     saveItems()
+    saveStats()
     return "deleted term"
 
 
@@ -188,27 +236,33 @@ def getItems():
 
 
 # PROFILE MANAGEMENT
-current_profile = "None"
 
 
 @app.route("/chooseprofile", methods=["POST"])
 def chooseProfile():
     global current_profile
+    loadProf()
+
     data = request.json
     profilename = data.get("profilename")
     current_profile = profilename
-
+    saveProf()
     return f"{current_profile} chosen"
 
 
 @app.route("/getprofiles", methods=["GET"])
 def getProfiles():
+    loadProf()
+    global current_profile
     dirs = [x[0][11:] for x in os.walk("./profiles") if x[0] != "./profiles"]
     return jsonify(profiles=dirs)
 
 
 @app.route("/getcurrentprofile", methods=["GET"])
 def getCurrProfile():
+    global current_profile
+    loadProf()
+
     return jsonify(profile=current_profile)
 
 
@@ -292,10 +346,17 @@ def loadReviews():
 
 
 def calculateNextReviewTime(item, correct):
+    global stats
+    loadStats()
     if correct:  # case where they get it right
+        stats[f"lvl{item.getLevel()}"] -= 1
         item.setLevel(item.getLevel() + 1)
+        stats[f"lvl{item.getLevel()}"] += 1
     else:
-        item.setLevel(max(1, item.getLevel() - 1))  # increment level by 1
+        stats[f"lvl{item.getLevel()}"] -= 1
+        item.setLevel(max(1, item.getLevel() - 1))
+        stats[f"lvl{item.getLevel()}"] += 1
+        # increment level by 1
     level = item.getLevel()
     now = datetime.now()
     if level == 2:
@@ -313,6 +374,7 @@ def calculateNextReviewTime(item, correct):
     if level == 8:
         item.setdt(now + timedelta(hours=2920))
     print("next review print ", item)
+    saveStats()
     return item
 
 
@@ -321,8 +383,10 @@ failedReviews = {}
 
 @app.route("/checkifcorrect", methods=["POST", "GET"])
 def checkCorrect():
+    global stats
     global failedReviews
     loadReviewList()
+    loadStats()
     global items_list
     global review_list
     data = request.json
@@ -387,7 +451,18 @@ def loadStats():
             stats = pickle.load(file)
     except FileNotFoundError:
         stats = dict(
-            numberofterms=0, numberofreviewsdone=0, numberright=0, numberwrong=0
+            numberofterms=0,
+            numberofreviewsdone=0,
+            numberright=0,
+            numberwrong=0,
+            lvl1=0,
+            lvl2=0,
+            lvl3=0,
+            lvl4=0,
+            lvl5=0,
+            lvl6=0,
+            lvl7=0,
+            lvl8=0,
         )
 
         with open(f"./profiles/{current_profile}/stats", "wb") as file:
@@ -402,7 +477,18 @@ def saveStats():
             pickle.dump(stats, file)
     except FileNotFoundError:
         stats = dict(
-            numberofterms=0, numberofreviewsdone=0, numberright=0, numberwrong=0
+            numberofterms=0,
+            numberofreviewsdone=0,
+            numberright=0,
+            numberwrong=0,
+            lvl1=0,
+            lvl2=0,
+            lvl3=0,
+            lvl4=0,
+            lvl5=0,
+            lvl6=0,
+            lvl7=0,
+            lvl8=0,
         )
 
         with open(f"./profiles/{current_profile}/stats", "wb") as file:
@@ -411,18 +497,37 @@ def saveStats():
     file.close()
 
 
+@app.route
 @app.route("/getstats", methods=["GET"])
 def getStats():
     global stats
     loadStats()
     print(stats.keys())
     numterms = stats["numberofterms"]
-    numreviews = stats["numberofreviewsdone"]
+    numreviews = stats["numberright"] + stats["numberwrong"]
     numright = stats["numberright"]
     numwrong = stats["numberwrong"]
-
+    lvl1 = stats["lvl1"]
+    lvl2 = stats["lvl2"]
+    lvl3 = stats["lvl3"]
+    lvl4 = stats["lvl4"]
+    lvl5 = stats["lvl5"]
+    lvl6 = stats["lvl6"]
+    lvl7 = stats["lvl7"]
+    lvl8 = stats["lvl8"]
     return jsonify(
-        numterms=numterms, numreviews=numreviews, numright=numright, numwrong=numwrong
+        numterms=numterms,
+        numreviews=numreviews,
+        numright=numright,
+        numwrong=numwrong,
+        lvl1=lvl1,
+        lvl2=lvl2,
+        lvl3=lvl3,
+        lvl4=lvl4,
+        lvl5=lvl5,
+        lvl6=lvl6,
+        lvl7=lvl7,
+        lvl8=lvl8,
     )
 
 

@@ -59,10 +59,10 @@ export default function HomePage({ handleProfileClick }) {
   };
 
   return (
-    <div className="w-screen overflow-hidden">
+    <div className="w-screen">
       <div className="flex flex-col items-center">
         <div>
-          <div className="text-6xl pb-5">Please create a profile!</div>
+          <div className="text-6xl pb-5">Please create/select a profile!</div>
           <CustomTextBox
             multi={false}
             inputRef={inputRef}
@@ -76,15 +76,19 @@ export default function HomePage({ handleProfileClick }) {
             </button>
           </div>
         </div>
-        <div className="flex flex-row space-x-4 items-center justify-center">
-          <p>Current profiles:</p>
-          {profiles.map((profile, index) => (
-            <button key={index} onClick={() => handleProfileChosen(profile)}>
-              {profile}
-            </button>
-          ))}
-
-          <></>
+        <div className="flex flex-col space-x-4 items-center justify-center text-2xl pb-1">
+          <u>Switch profiles</u>
+          <div>
+            {profiles.map((profile, index) => (
+              <button
+                className="m-1"
+                key={index}
+                onClick={() => handleProfileChosen(profile)}
+              >
+                {profile}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

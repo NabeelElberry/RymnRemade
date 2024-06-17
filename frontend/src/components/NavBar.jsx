@@ -63,6 +63,9 @@ export default function NavBar({ profile }) {
             justifyContent: "center",
             alignItems: "center",
           }}
+          component={Link}
+          to="/"
+          className="font-quicksand"
         >
           <img
             src={rymnPng}
@@ -77,7 +80,7 @@ export default function NavBar({ profile }) {
             to={links[index]}
             onClick={toggleDrawer(false)}
             sx={{ textAlign: "center", width: "100%" }}
-            className="hover:scale-110 transition text-textcolor ease-in-out"
+            className="hover:scale-110 transition text-textcolor font-quicksand ease-in-out drop-shadow-white"
           >
             <ListItemText primary={text} />
           </ListItem>
@@ -88,36 +91,48 @@ export default function NavBar({ profile }) {
 
   // Dropshadow for navbar in App.css
   return (
-    <div className="navbar text-3xl absolute w-full pl-4 h-16 pt-2 pb-2 inset-x-0 top-0 bg-slate-400 flex flex-row items-center z-50 bg-navbarcolor">
-      <IconButton
-        edge="start"
-        color="inherit"
-        aria-label="menu"
-        onClick={toggleDrawer(true)}
-        className="mr-10"
-      >
-        <MenuIcon />
-      </IconButton>
-      <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={toggleDrawer(false)}
-        sx={{
-          ".MuiDrawer-paper": {
-            backgroundColor: "#5C3F76",
-          },
-        }}
-      >
-        {drawerList()}
-      </Drawer>
-      <Link to="/" className="ml-3 rymn">
-        <img
-          src={rymnPng}
-          className="h-14 hover:scale-105 transition ease-in-out"
-          alt="Logo"
-        />
-      </Link>
-      <p className="ml-auto mr-auto">Current Profile: {profile} </p>
+    <div
+      className="navbar text-3xl mx-auto absolute w-full pl-4 pr-4 
+                h-16 pt-2 pb-2 top-0 flex items-center 
+                justify-between bg-navbarcolor"
+    >
+      <div className="flex flex-row shrink items-center ">
+        <IconButton
+          edge="start"
+          color="inherit"
+          aria-label="menu"
+          onClick={toggleDrawer(true)}
+        >
+          <MenuIcon />
+        </IconButton>
+        <Drawer
+          anchor="left"
+          open={drawerOpen}
+          onClose={toggleDrawer(false)}
+          sx={{
+            ".MuiDrawer-paper": {
+              backgroundColor: "#5C3F76",
+            },
+          }}
+        >
+          {drawerList()}
+        </Drawer>
+        <Link to="/" className="ml-3 rymn">
+          <img
+            src={rymnPng}
+            className="h-14 hover:scale-105 transition ease-in-out"
+            alt="Logo"
+          />
+        </Link>
+      </div>
+
+      <div className="items-center flex flex-col ">
+        <p className="text-sm">Current Profile</p>
+        <p className="hover:scale-110 transition ease-in-out cursor-default">
+          <u>{profile ? profile : "None"}</u>
+        </p>{" "}
+      </div>
+      <div className="text-navbarcolor cursor-default">nothing</div>
     </div>
   );
 }

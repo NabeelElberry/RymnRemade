@@ -23,7 +23,7 @@ export default function CustomTextBox({
         sx={{
           "& .MuiFilledInput-root": {
             backgroundColor: "#282420", // Background color of the filled input
-            color: "#F1BDBD",
+            color: "#BEAECD",
             textAlign: "center",
 
             // Text color of the filled input
@@ -59,7 +59,7 @@ export default function CustomTextBox({
         sx={{
           "& .MuiFilledInput-root": {
             backgroundColor: "#282420", // Background color of the filled input
-            color: "#F1BDBD",
+            color: "#BEAECD",
             textAlign: "center",
 
             // Text color of the filled input

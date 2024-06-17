@@ -6,6 +6,7 @@ export default function ProfileManagementPage() {
   const [currentlyAdd, setCurrentlyAdd] = useState(true);
   const [currentText, setCurrentText] = useState("");
   const inputRef = useRef();
+  const [termsAdded, setTermsAdded] = useState("");
 
   function handleSelectAdd(addOrDelete) {
     if (addOrDelete == 1) {
@@ -25,6 +26,12 @@ export default function ProfileManagementPage() {
       const response = await axios.post(url, {
         profilename: inputRef.current.value,
       });
+      currentlyAdd
+        ? setTermsAdded("Profile(s) were added!")
+        : setTermsAdded("Profile(s) were deleted!");
+      setTimeout(() => {
+        setTermsAdded("");
+      }, 2000);
       console.log(`adding terms using url ${url}`);
     } catch (error) {
       console.error("There was an error checking profiles!", error);
@@ -42,11 +49,11 @@ export default function ProfileManagementPage() {
       </div>
 
       {currentlyAdd ? (
-        <p className="pt-10 pb-3">
+        <p className="pt-10 pb-3 font-bold">
           Write profile(s) to add separated by new line
         </p>
       ) : (
-        <p className="pt-10 pb-3">
+        <p className="pt-10 pb-3 font-bold">
           Write name of profile to be deleted separated by new line
         </p>
       )}
@@ -58,9 +65,10 @@ export default function ProfileManagementPage() {
         className="pb-10"
       />
       {/* TEXT AREA FOR ENTERING TERMS */}
-      <button onClick={() => handleOnAdd(currentlyAdd)}>
+      <button className="mt-5 mb-1" onClick={() => handleOnAdd(currentlyAdd)}>
         {currentlyAdd ? "Add Profile!" : "Delete Profile!"}
       </button>
+      {termsAdded && <div>{termsAdded}</div>}
     </div>
   );
 }

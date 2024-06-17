@@ -1,7 +1,7 @@
 import Tooltip from "@mui/material/Tooltip";
 import { forwardRef, useState } from "react";
 import ClickAwayListener from "@mui/material/ClickAwayListener";
-
+import Zoom from "@mui/material/Zoom";
 const Term = forwardRef(
   ({ name, defn, alt_defns, level, created, review, onFocus }, ref) => {
     const [open, setOpen] = useState(false);
@@ -23,9 +23,25 @@ const Term = forwardRef(
           disableFocusListener
           disableTouchListener
           disableHoverListener
-          title={`Term: ${name}\n Definition: ${defn}\n Alternate Definitions: ${alt_defns}\n Level: ${level}\n Date Created: ${created}\n Next Review: ${review}\n`}
+          TransitionComponent={Zoom}
+          title={
+            <div className="drop-shadow-lg text-tooltiptext">
+              <u>Term:</u> {name}
+              <br />
+              <u>Definition:</u> {defn}
+              <br />
+              <u>Alternate Definitions:</u> {alt_defns ? alt_defns : "None"}
+              <br />
+              <u>Level:</u> {level}
+              <br />
+              <u>Date Created:</u> {created}
+              <br />
+              <u>Next Review:</u> {review}
+            </div>
+          }
+          slotProps={{ tooltip: { style: { backgroundColor: "#BEAECD" } } }}
         >
-          <button ref={ref} onClick={handleTooltipOpen}>
+          <button ref={ref} className="m-1" onClick={handleTooltipOpen}>
             {name}
           </button>
         </Tooltip>
