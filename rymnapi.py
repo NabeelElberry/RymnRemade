@@ -192,10 +192,10 @@ def add_term():
             colon_found = False
             term = term.strip()
             defn = defn.strip()
-            defn = defn[2:]
+            defn = defn[1:]
             alt_defns = re.split(",", alt_defns)
             alt_defns = [item.strip() for item in alt_defns]
-            alt_defns[0] = alt_defns[0][2:]
+            alt_defns[0] = alt_defns[0][1:]
             notes = notes.strip()
 
             items_list[term] = Item(term, defn, alt_defns, notes)
