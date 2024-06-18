@@ -19,6 +19,7 @@ function App() {
         "http://localhost:5000/getcurrentprofile"
       );
       setCurrentProfile(response.data.profile);
+      console.log("boomba");
     } catch (error) {
       console.log("Couldn't set profile in App.jsx");
     }
