@@ -52,6 +52,7 @@ export default function HomePage({ handleProfileClick }) {
       });
       setHasProfiles(true);
       setProfileName(inputRef.current.value);
+      handleProfileClick();
     } catch (error) {
       console.error("There was an error: ", error);
       alert("Error creating profile");
