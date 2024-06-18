@@ -73,8 +73,12 @@ export default function TermManagementPage() {
       </div>
       {currentlyAdd ? (
         <p className="pt-10 pb-3 font-bold">
-          Write terms to add in the form: Term / Definition separated by new
-          line
+          Write terms to add in the form:{" "}
+          <u>
+            Term / Definition | Alternate Definitions (separated by commas) :
+            Notes separated by new line
+          </u>
+          . ** Alternate Definitions and Notes are optional **
         </p>
       ) : (
         <p className="pt-10 pb-3 font-bold">

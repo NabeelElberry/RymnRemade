@@ -18,6 +18,7 @@ export default function NavBar({ profile }) {
     "/reviewTerms",
     "/viewTerms",
     "/viewStats",
+    "/about",
   ];
 
   const names = [
@@ -26,6 +27,7 @@ export default function NavBar({ profile }) {
     "Review Terms",
     "View Terms",
     "View Stats",
+    "About",
   ];
 
   const toggleDrawer = (open) => (event) => {

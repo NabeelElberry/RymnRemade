@@ -9,6 +9,7 @@ import ViewTerms from "./components/ViewTerms";
 import ProfileManagementPage from "./components/ProfileManagementPage";
 import ReviewTerms from "./components/ReviewTerms";
 import Statistics from "./components/Statistics";
+import About from "./components/About";
 function App() {
   const [currentProfile, setCurrentProfile] = useState("");
 
@@ -25,7 +26,7 @@ function App() {
 
   useEffect(() => {
     getProfile();
-  });
+  }, [currentProfile]);
 
   const handleProfileChange = () => {
     getProfile();
@@ -44,11 +45,16 @@ function App() {
           <Route path="/termManagement" element={<TermManagementPage />} />
           <Route
             path="/profileManagement"
-            element={<ProfileManagementPage />}
+            element={
+              <ProfileManagementPage
+                handleProfileChange={handleProfileChange}
+              />
+            }
           />
           <Route path="/viewTerms" element={<ViewTerms />} />
           <Route path="/reviewTerms" element={<ReviewTerms />} />
           <Route path="/viewStats" element={<Statistics />} />
+          <Route path="/about" element={<About />} />
         </Routes>
       </div>
     </div>

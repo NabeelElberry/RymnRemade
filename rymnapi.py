@@ -37,15 +37,16 @@ stats = dict(
 # This will store every term => each term is one item
 class Item:
     # constructor with optional alternate defns parameter
-    def __init__(self, termN, defnN, alt_defnsN=[]):
+    def __init__(self, termN, defnN, alt_defnsN=[], notes=[]):
         now = datetime.now()
         self.term = termN
         self.defn = defnN
         self.alt_defns = alt_defnsN
+        self.notes = notes
         self.date_created = now.strftime("%m/%d/%Y, %H:%M:%S")
         self.level = 1
         # retrieving review date
-        review_time = now + timedelta(hours=4)
+        review_time = now  # + timedelta(hours=4)
         self.dt_datereview = review_time
         self.full_date_review = review_time.strftime("%m/%d/%Y, %H:%M:%S")
         # self.date_to_review = {}
@@ -155,7 +156,8 @@ def add_term():
     # comes in the form of Term / Definition
 
     slash_found = False
-
+    alt_found = False
+    colon_found = False
     terms_defns = terms_defns.splitlines()
     # splitting into terms and defns
     # iterating through each pair, then adding it to items_list
@@ -166,21 +168,37 @@ def add_term():
             i = 0
             term = ""
             defn = ""
+            alt_defns = ""
+            notes = ""
             while i < len(item):
                 if item[i] == "/":
                     slash_found = True
-                else:
-                    if not slash_found:
-                        term += item[i]
-                    else:
-                        defn += item[i]
+                if item[i] == "|":
+                    alt_found = True
+                if item[i] == ":":
+                    colon_found = True
 
+                if not slash_found:
+                    term += item[i]
+                elif slash_found and not alt_found:
+                    defn += item[i]
+                elif alt_found and not colon_found:
+                    alt_defns += item[i]
+                elif colon_found:
+                    notes += item[i]
                 i += 1
             slash_found = False
+            alt_found = False
+            colon_found = False
             term = term.strip()
             defn = defn.strip()
+            defn = defn[2:]
+            alt_defns = re.split(",", alt_defns)
+            alt_defns = [item.strip() for item in alt_defns]
+            alt_defns[0] = alt_defns[0][2:]
+            notes = notes.strip()
 
-            items_list[term] = Item(term, defn)
+            items_list[term] = Item(term, defn, alt_defns, notes)
     stats["numberofterms"] += count
     stats["lvl1"] += count
     # adding the number of terms to statistics
@@ -260,8 +278,8 @@ def getProfiles():
 
 @app.route("/getcurrentprofile", methods=["GET"])
 def getCurrProfile():
-    global current_profile
     loadProf()
+    global current_profile
 
     return jsonify(profile=current_profile)
 
@@ -269,6 +287,7 @@ def getCurrProfile():
 @app.route("/addprofile", methods=["POST"])
 def createProfile():
     data = request.json
+    global current_profile
     profilename = data.get("profilename")
 
     if not os.path.exists(
@@ -276,6 +295,9 @@ def createProfile():
     ):  # creating a new profile if doesn't already exist
         os.makedirs(f"./profiles/{profilename}")
 
+    if len(next(os.walk("./profiles"))[1]) == 1:
+        current_profile = profilename
+        saveProf()
     return f"profile {profilename} created successfully"
 
 
@@ -283,9 +305,14 @@ def createProfile():
 def deleteProfile():
     data = request.json
     profilename = data.get("profilename")
-
+    global current_profile
     if os.path.exists(f"./profiles/{profilename}"):
         shutil.rmtree(f"./profiles/{profilename}")
+        os.remove("./prof")
+    if len(next(os.walk("./profiles"))[1]) == 0:
+        current_profile = "None"
+        print("WE HAVE DELETED ALL")
+    saveProf()
     return f"profile ${profilename} delete"
 
 
@@ -402,7 +429,14 @@ def checkCorrect():
 
     stats["numberofreviewsdone"] += 1
     print("failedReviews: ", failedReviews)
-    if answer == defn:
+    answer_correct = False
+    if answer == defn.lower():
+        answer_correct = True
+    for item in items_list[term].alt_defns:
+        if answer == item.lower():
+            answer_correct = True
+
+    if answer_correct:
         del review_list[term]  # deleting it from the review list if correct
         print("answer was correct")
         print("review list after deletion: ", review_list)

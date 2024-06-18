@@ -39,7 +39,6 @@ export default function HomePage({ handleProfileClick }) {
       setTimeout(() => {
         setProfileChosen("");
       }, 2000);
-      handleProfileClick();
     } catch (error) {
       console.error("Couldn't choose profile!", error);
     }
@@ -52,6 +51,7 @@ export default function HomePage({ handleProfileClick }) {
       });
       setHasProfiles(true);
       setProfileName(inputRef.current.value);
+      handleProfileClick();
     } catch (error) {
       console.error("There was an error: ", error);
       alert("Error creating profile");

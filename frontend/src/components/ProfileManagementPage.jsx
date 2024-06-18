@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import axios from "axios";
 import CustomTextBox from "./CustomTextBox";
-export default function ProfileManagementPage() {
+export default function ProfileManagementPage({ handleProfileChange }) {
   const textArea = useRef();
   const [currentlyAdd, setCurrentlyAdd] = useState(true);
   const [currentText, setCurrentText] = useState("");
@@ -32,6 +32,8 @@ export default function ProfileManagementPage() {
       setTimeout(() => {
         setTermsAdded("");
       }, 2000);
+      handleProfileChange();
+
       console.log(`adding terms using url ${url}`);
     } catch (error) {
       console.error("There was an error checking profiles!", error);
