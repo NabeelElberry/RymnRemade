@@ -4,7 +4,7 @@
   },
   "scripts": {
     "dev": "node dev-server.js",
-    "start": "react-scripts start",
+    "start": "node start",
     "build": "webpack --mode production"
   
 }
