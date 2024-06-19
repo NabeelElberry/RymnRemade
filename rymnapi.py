@@ -46,7 +46,7 @@ class Item:
         self.date_created = now.strftime("%m/%d/%Y, %H:%M:%S")
         self.level = 1
         # retrieving review date
-        review_time = now + timedelta(hours=4)
+        review_time = now  # + timedelta(hours=4)
         self.dt_datereview = review_time
         self.full_date_review = review_time.strftime("%m/%d/%Y, %H:%M:%S")
         # self.date_to_review = {}
@@ -372,18 +372,23 @@ def loadReviews():
     return jsonify(revLength=len(review_list))
 
 
-def calculateNextReviewTime(item, correct):
+def calculateNextReviewTime(item, correct, numberOfTimesFailed):
     global stats
     loadStats()
+    penaltyFactor = 1
+    if item.getLevel() >= 5:
+        penaltyFactor = 2
     if correct:  # case where they get it right
         stats[f"lvl{item.getLevel()}"] -= 1
         item.setLevel(item.getLevel() + 1)
         stats[f"lvl{item.getLevel()}"] += 1
     else:
         stats[f"lvl{item.getLevel()}"] -= 1
-        item.setLevel(max(1, item.getLevel() - 1))
+        item.setLevel(max(1, item.getLevel() - (penaltyFactor * numberOfTimesFailed)))
         stats[f"lvl{item.getLevel()}"] += 1
-        # increment level by 1
+
+    print("num times failed", numberOfTimesFailed)
+    # increment level by 1
     level = item.getLevel()
     now = datetime.now()
     if level == 2:
@@ -430,6 +435,8 @@ def checkCorrect():
     stats["numberofreviewsdone"] += 1
     print("failedReviews: ", failedReviews)
     answer_correct = False
+    defn = defn.strip()
+    print(defn.lower())
     if answer == defn.lower():
         answer_correct = True
     for item in items_list[term].alt_defns:
@@ -437,12 +444,15 @@ def checkCorrect():
             answer_correct = True
 
     if answer_correct:
+        print("answer was correct!!!!")
         del review_list[term]  # deleting it from the review list if correct
         print("answer was correct")
         print("review list after deletion: ", review_list)
 
         items_list[term] = calculateNextReviewTime(
-            items_list[term], False if term in failedReviews else True
+            items_list[term],
+            False if term in failedReviews else True,
+            (failedReviews[term][1] if term in failedReviews else 0),
         )
 
         if len(review_list) == 0:
@@ -454,7 +464,12 @@ def checkCorrect():
         saveReviewList()
         return jsonify(correct=True, defn="")
     else:
-        failedReviews[term] = True
+        print("wrong answer")
+        if term not in failedReviews:
+            failedReviews[term] = [True, 0]
+        failedReviews[term][1] = (
+            failedReviews[term][1] + 1
+        )  # number of times gotten wrong + 1
         saveItems()
         stats["numberwrong"] += 1
         saveStats()

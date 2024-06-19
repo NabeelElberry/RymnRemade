@@ -7,8 +7,8 @@ block_cipher = None
 a = Analysis(
     ['main.py'],
     pathex=[],
-    binaries=[('frontend/dist', 'frontend/dist')],
-    datas=[],
+    binaries=[],
+    datas=[('frontend/dist', 'frontend/dist')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
