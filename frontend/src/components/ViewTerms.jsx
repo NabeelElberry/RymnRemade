@@ -41,6 +41,7 @@ export default function ViewTerms() {
           level={item.level}
           created={item.date_created}
           review={item.review_date}
+          notes={item.notes}
           focus={handleFocus(index)}
         ></Term>
       ))}

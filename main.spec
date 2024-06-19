@@ -8,7 +8,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('frontend/dist', 'frontend/dist')],
+    datas=[],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

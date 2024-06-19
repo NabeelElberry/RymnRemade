@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import CustomTextBox from "./CustomTextBox";
+
 export default function ReviewTerms() {
   const [term, setTerm] = useState("");
   const [defn, setDefn] = useState("");
@@ -17,7 +18,6 @@ export default function ReviewTerms() {
       try {
         const response = await axios.get("http://localhost:5000/loadreviews");
         setRevLenList(JSON.stringify(response.data.revLength));
-        // console.log(`${JSON.stringify(response.reviews)}`);
       } catch (error) {
         console.error("There was an error checking profiles!", error);
       }
@@ -25,17 +25,9 @@ export default function ReviewTerms() {
     loadReviews();
   }, []);
 
-  useEffect(() => {
-    // Show result message when correct state changes
-    if (correct !== null) {
-      setShowResult(true);
-    }
-  }, [correct]);
-
   async function getTerm() {
     try {
       const response = await axios.get("http://localhost:5000/getnextterm");
-      // array = JSON.parse(response.data.review);
       if (
         response.data.term == "all done" &&
         response.data.defn == "all done"
@@ -69,17 +61,17 @@ export default function ReviewTerms() {
         }
       );
       setDefn(response.data.defn);
+      console.log("RESPONSE:", response.data.correct);
       setCorrect(response.data.correct);
-      console.log("the answer was " + response.data.correct);
+      console.log("CORRECT:", response.data.correct);
       setShowResult(true);
-      getTerm();
-      if (correct) {
-        setCorrect(false);
+
+      if (response.data.correct) {
         setTimeout(() => {
-          setShowResult("");
-        }, 5000);
-        setCorrect(true);
+          setShowResult(false);
+        }, 2000);
       }
+      getTerm();
     } catch (error) {
       console.error("There was an error checking profiles!", error);
     }
@@ -89,7 +81,7 @@ export default function ReviewTerms() {
     return (
       <>
         {done ? (
-          <div>All done</div>
+          <div className="text-5xl">All done, come back later for more!</div>
         ) : (
           <div>
             <p className="text-8xl pb-10 drop-shadow-smallerwhite">

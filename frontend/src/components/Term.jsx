@@ -3,7 +3,7 @@ import { forwardRef, useState } from "react";
 import ClickAwayListener from "@mui/material/ClickAwayListener";
 import Zoom from "@mui/material/Zoom";
 const Term = forwardRef(
-  ({ name, defn, alt_defns, level, created, review, onFocus }, ref) => {
+  ({ name, defn, alt_defns, level, created, review, notes, onFocus }, ref) => {
     const [open, setOpen] = useState(false);
     const handleTooltipClose = () => {
       setOpen(false);
@@ -33,6 +33,8 @@ const Term = forwardRef(
               <u>Alternate Definitions:</u> {alt_defns ? alt_defns : "None"}
               <br />
               <u>Level:</u> {level}
+              <br />
+              <u>Notes: </u> {notes ? notes : "None"}
               <br />
               <u>Date Created:</u> {created}
               <br />

@@ -74,7 +74,7 @@ class Item:
         # self.date_to_review["year"] = new_date.strftime("%Y")
 
     def __str__(self):
-        return f"Term: {self.term}, Review Date: {self.full_date_review}, Level: {self.level}"
+        return f"Term: {self.term}, Review Date: {self.full_date_review}, Level: {self.level}, Notes: {self.notes}, alt: {self.alt_defns}"
 
 
 def loadProf():
@@ -153,52 +153,56 @@ def add_term():
     terms_defns = data.get("termsanddefn")
 
     # PARSING DATA
-    # comes in the form of Term / Definition
+    # comes in the form of Term :: Definition ::/ alt defns ::: notes
+    # splitting input
 
-    slash_found = False
-    alt_found = False
-    colon_found = False
     terms_defns = terms_defns.splitlines()
+    print("terms_defns:", terms_defns)
     # splitting into terms and defns
     # iterating through each pair, then adding it to items_list
     count = 0
     for item in terms_defns:
-        count += 1
-        if "/" in item:
-            i = 0
-            term = ""
-            defn = ""
-            alt_defns = ""
-            notes = ""
-            while i < len(item):
-                if item[i] == "/":
-                    slash_found = True
-                if item[i] == "|":
-                    alt_found = True
-                if item[i] == ":":
-                    colon_found = True
+        alt_defns = None
+        notes = None
 
-                if not slash_found:
-                    term += item[i]
-                elif slash_found and not alt_found:
-                    defn += item[i]
-                elif alt_found and not colon_found:
-                    alt_defns += item[i]
-                elif colon_found:
-                    notes += item[i]
-                i += 1
-            slash_found = False
-            alt_found = False
-            colon_found = False
-            term = term.strip()
-            defn = defn.strip()
-            defn = defn[1:]
-            alt_defns = re.split(",", alt_defns)
-            alt_defns = [item.strip() for item in alt_defns]
-            alt_defns[0] = alt_defns[0][1:]
-            notes = notes.strip()
+        parts = item.split("::")
 
+        term = parts[0].strip()
+        defn = parts[1].strip()
+
+        print("term", term)
+        print("defn", defn)
+        if len(parts) == 4:
+            alt_defns = parts[2].strip()
+            notes = parts[3].strip()
+        if len(parts) == 3:
+            parts[2] = parts[2].strip()
+            if parts[2][0] == "{" and parts[2][len(parts[2]) - 1] == "}":
+                alt_defns = parts[2]
+                print("alt_defns: ", alt_defns)
+            else:
+                notes = parts[2]
+                print("notes: ", notes)
+        if alt_defns:
+            alt_defns = alt_defns[1:]  # removing first and last brackets
+            alt_defns = alt_defns[:-1]
+            alt_defns = alt_defns.split(",")
+            index = 0
+            while index < len(alt_defns):
+                alt_defns[index] = alt_defns[index].strip()
+                index += 1
+        print("alt_defns each", alt_defns)
+        print("notes: ", notes)
+        if alt_defns and notes:
             items_list[term] = Item(term, defn, alt_defns, notes)
+        elif alt_defns:
+            items_list[term] = Item(term, defn, alt_defns)
+        elif notes:
+            items_list[term] = Item(term, defn, [], notes)
+        else:
+            items_list[term] = Item(term, defn)
+        print("term: ", items_list[term])
+        count += 1
     stats["numberofterms"] += count
     stats["lvl1"] += count
     # adding the number of terms to statistics
@@ -248,6 +252,7 @@ def getItems():
             "level": curr_item.level,
             "date_created": curr_item.date_created,
             "review_date": curr_item.full_date_review,
+            "notes": curr_item.notes,
         }
         json_list.append(json_item)
     return jsonify(terms=json_list)
@@ -422,10 +427,10 @@ def checkCorrect():
     global items_list
     global review_list
     data = request.json
-    term = data.get("term")
-    term = term.strip('"')
+    term = data.get("term")  # received term to check if correct
+    term = term.strip('"')  # removing extra spaces
 
-    answer = data.get("answer")
+    answer = data.get("answer")  # answer the user entered
     answer = re.sub(r'["\']', "", answer)
     answer = answer.strip()
     answer = answer.lower()
@@ -582,4 +587,4 @@ def getStats():
 
 # add show terms path
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
