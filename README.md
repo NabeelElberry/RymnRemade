@@ -9,7 +9,7 @@ This is a common Javascript dependency for many programs to run! <u>Here is the 
 Just leave the settings on default for the install and click next until you reach finish! 
 <h3><ins>Part 2: Downloading the Zip</ins></h3>
 
-To use Rymn, download the repository as a ZIP file <em><ins><br><img src = "https://github.com/NabeelElberry/RymnRemade/assets/74639890/a2f4cc35-cb77-47ea-b2f4-632986ef724c"><br>(click on the green "Code" button near the top right of this page and press the 'download ZIP option'). <br>Open the file and unzip it and store it somewhere for easy access.</ins></em>
+To use Rymn, download the repository as a ZIP file <em><ins><br><img src = "https://github.com/NabeelElberry/RymnRemade/assets/74639890/2f1baeb0-8e88-4f25-87ed-84f76de43f6b"><br>(click on the green "Code" button near the top right of this page and press the 'download ZIP option'). <br>Open the file and unzip it and store it somewhere for easy access.</ins></em>
 <br>
 
 <h3><ins>Part 3: Running Setup Once</ins></h3>
