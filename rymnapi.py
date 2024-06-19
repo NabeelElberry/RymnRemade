@@ -46,7 +46,7 @@ class Item:
         self.date_created = now.strftime("%m/%d/%Y, %H:%M:%S")
         self.level = 1
         # retrieving review date
-        review_time = now  # + timedelta(hours=4)
+        review_time = now + timedelta(hours=4)
         self.dt_datereview = review_time
         self.full_date_review = review_time.strftime("%m/%d/%Y, %H:%M:%S")
         # self.date_to_review = {}

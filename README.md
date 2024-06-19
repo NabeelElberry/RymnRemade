@@ -3,13 +3,15 @@
 
 <h1>Installation</h1>
 <h3><ins>Part 1: Installing Node</ins></h3>
-<em>Please note to run this program you will need to install node.</em> Go to the prebuilt installer section to get an easy install.<br>
+<em>Please note to run this program you will need to install node.</em> Go to the "prebuilt installer" section on the website to get an easy install.<br>
 This is a common Javascript dependency for many programs to run! <u>Here is the link: https://nodejs.org/en/download/package-manager. </u>
 <br>
 Just leave the settings on default for the install and click next until you reach finish! 
 <h3><ins>Part 2: Downloading the Zip</ins></h3>
-To use rymn, download the repository as a ZIP file (click on Code near the top of the repository and press the 'download as ZIP option'). <br>Unzip it and store it somewhere for easy access.
+
+To use Rymn, download the repository as a ZIP file <em><ins><br><img src = "https://github.com/NabeelElberry/RymnRemade/assets/74639890/a2f4cc35-cb77-47ea-b2f4-632986ef724c"><br>(click on the green "Code" button near the top right of this page and press the 'download ZIP option'). <br>Open the file and unzip it and store it somewhere for easy access.</ins></em>
 <br>
+
 <h3><ins>Part 3: Running Setup Once</ins></h3>
 After that, navigate into the frontend folder, within that folder right click on an open space and press "open in terminal". In the terminal type these commands <em><u>one at a time</u></em>:
 
@@ -23,11 +25,11 @@ npm install serve
 <strong><ins>Please note: <em>npm install</em> may take some time to run and might look like it's frozen, this is completely normal, please allow it to finish.</ins></strong>
 
 <h1>Normal Usage</h1>
-After the installation we can use the program normally to do this run the <em>run_program</em> file in the <em>frontend</em> folder to use rymn as you please!
+After the installation we can use the program normally to do this run the <em>run_program</em> file in the <em>frontend</em> folder to use as you please!
 
-When you open the <em>run_program</em> file in the front end folder, it will open two command prompts each running a server (so don't worry if windows pop up :D ). One of them will have localhost:(some number). If you control click that (localhost:(some number)) it will open the program!
+When you open the <em>run_program</em> file in the front end folder, it will open two command prompts each running a server (so don't worry if windows pop up). One of them will have localhost:(some number). If you hold control and click that (localhost:(some number)) it will open the program!
 
-<h1>About Rymn</h1>
+<h1>About </h1>
 Rymn uses specific review timings for terms to make them stick. These timing are research based and go in the order of <br>
 <hr>
 Level 1: 4 hours<br>
