@@ -78,7 +78,7 @@ export default function HomePage({ handleProfileClick }) {
           </div>
         </div>
         <div className="flex flex-col space-x-4 items-center justify-center text-2xl pb-1">
-          <u>Switch profiles</u>
+          <u>Switch Profiles</u>
           <div>
             {profiles.map((profile, index) => (
               <button
