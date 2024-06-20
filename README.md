@@ -14,7 +14,10 @@ To use Rymn, download the repository as a ZIP file <em><ins><br><img src = "http
 
 <h3><ins>Part 3: Running Setup Once</ins></h3>
 After that, navigate into the frontend folder, within that folder right click on an open space and press "open in terminal". In the terminal type these commands <em><u>one at a time</u></em><br>
-<em>If you don't see an open in terminal option, please open a command prompt window and navigate to the frontend directory.</em>:
+<em>If you don't see an "open in terminal" option, please open a command prompt window and navigate to the frontend directory manually.</em>
+
+<br>
+To navigate to the directory click on type the command "cd C:\Users\{your_username}\{where you saved the unzipped folder}\RymnRemade-main\RymnRemade-main\frontend" then run the commands below:
 
 ```
 npm install
