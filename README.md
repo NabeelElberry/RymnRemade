@@ -17,7 +17,7 @@ After that, navigate into the frontend folder, within that folder right click on
 <em>If you don't see an "open in terminal" option, please open a command prompt window and navigate to the frontend directory manually.</em>
 
 <br>
-To navigate to the directory click on type the command "cd C:\Users\{your_username}\{where you saved the unzipped folder}\RymnRemade-main\RymnRemade-main\frontend" then run the commands below:
+To navigate to the directory open a command prompt window in windows, and type the command "cd C:\Users\{your_username}\{where you saved the unzipped folder}\RymnRemade-main\RymnRemade-main\frontend" then run the commands below:
 
 ```
 npm install
