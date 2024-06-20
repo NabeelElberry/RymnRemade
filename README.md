@@ -13,7 +13,8 @@ To use Rymn, download the repository as a ZIP file <em><ins><br><img src = "http
 <br>
 
 <h3><ins>Part 3: Running Setup Once</ins></h3>
-After that, navigate into the frontend folder, within that folder right click on an open space and press "open in terminal". In the terminal type these commands <em><u>one at a time</u></em>:
+After that, navigate into the frontend folder, within that folder right click on an open space and press "open in terminal". In the terminal type these commands <em><u>one at a time</u></em><br>
+<em>If you don't see an open in terminal option, please open a command prompt window and navigate to the frontend directory.</em>:
 
 ```
 npm install
