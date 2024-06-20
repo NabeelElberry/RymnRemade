@@ -25,16 +25,18 @@ npm install
 npm run build
 npm install serve
 ```
-
+<br>
+At this point you can close the command prompt
 <br>
 <strong><ins>Please note: <em>npm install</em> may take some time to run and might look like it's frozen, this is completely normal, please allow it to finish.</ins></strong>
 
 <h1>Normal Usage</h1>
 After the installation we can use the program normally to do this run the <em>run_program</em> file in the <em>frontend</em> folder to use as you please!
 
-When you open the <em>run_program</em> file in the front end folder, it will open two command prompts each running a server (so don't worry if windows pop up). One of them will have localhost:(some number). If you hold control and click that (localhost:(some number)) it will open the program!
+When you open the <em>run_program</em> file in the front end folder, it will open two command prompts each running a server (so don't worry if windows pop up). One of them will have localhost:(some number). If you hold control and click that (localhost:(some number)) it will open the program! Please keep the command prompts running while you are using the program!
 
 <h1>About </h1>
+<h2>Levels</h2>
 Rymn uses specific review timings for terms to make them stick. These timing are research based and go in the order of <br>
 <hr>
 Level 1: 4 hours<br>
@@ -47,5 +49,7 @@ Level 7: 1 Month<br>
 Level 8: 4 Months<br>
 <hr>
 If you get the term correct when reviewing on the <ins>first try</ins> then it will level up, otherwise it move down some levels depending on a formula.
-
+<h2>Recommendations</h2>
+My recommendation is that you add 30 terms a day, and make sure to get your reviews to 0 by the end of the day, so as to not let them stack.
+<br>
 I hope you are able to utilize this program to advance your learning journeys, thank you!
